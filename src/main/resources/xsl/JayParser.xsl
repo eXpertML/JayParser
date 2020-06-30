@@ -19,7 +19,7 @@
   <xsl:output indent="yes" method="xml"/>
   
   <xsl:param name="input" as="xs:string" select="'{a=0}'"/>
-  <xsl:param name="grammar" as="document-node(element(ixml))" select="document('Program.ixml')"/>
+  <xsl:param name="grammar" as="document-node(element(ixml))" select="doc('../../../../samples/Program.ixml')"/>
   <xsl:param name="debug" as="xs:boolean" select="false()"/>
   
   <xsl:key name="ruleByName" match="rule" use="@name"/>
