@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ixml>
+   <rule name='program'>:
+      <alt>
+         <nonterminal name='block'/>
+      </alt>.
+   </rule>
+   <rule name='block'>:
+      <alt>
+         <literal dstring='{'/>,
+         <nonterminal name='S'/>,
+         <repeat0>
+            <nonterminal name='statement'/>*
+            <sep>(
+               <alts>
+                  <alt>
+                     <literal dstring=';'/>,
+                     <nonterminal name='S'/>
+                  </alt>
+               </alts>)
+            </sep>
+         </repeat0>,
+         <literal dstring='}'/>,
+         <nonterminal name='S'/>
+      </alt>.
+   </rule>
+   <rule name='statement'>:
+      <alt>
+         <nonterminal name='if-statement'/>
+      </alt>;
+      <alt>
+         <nonterminal name='while-statement'/>
+      </alt>;
+      <alt>
+         <nonterminal name='assignment'/>
+      </alt>;
+      <alt>
+         <nonterminal name='call'/>
+      </alt>;
+      <alt>
+         <nonterminal name='block'/>
+      </alt>.
+   </rule>
+   <rule name='if-statement'>:
+      <alt>
+         <literal dstring='if'/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='condition'/>,
+         <literal dstring='then'/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='statement'/>,
+         <option>
+            <nonterminal name='else-part'/>?</option>
+      </alt>.
+   </rule>
+   <rule name='else-part'>:
+      <alt>
+         <literal dstring='else'/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='statement'/>
+      </alt>.
+   </rule>
+   <rule name='while-statement'>:
+      <alt>
+         <literal dstring='while'/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='condition'/>,
+         <literal dstring='do'/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='statement'/>
+      </alt>.
+   </rule>
+   <rule name='assignment'>:
+      <alt>
+         <nonterminal name='variable'/>,
+         <literal dstring='='/>,
+         <nonterminal name='S'/>,
+         <nonterminal name='expression'/>
+      </alt>.
+   </rule>
+   <rule name='variable'>:
+      <alt>
+         <nonterminal name='identifier'/>
+      </alt>.
+   </rule>
+   <rule name='call'>:
+      <alt>
+         <nonterminal name='identifier'/>,
+         <literal dstring='('/>,
+         <nonterminal name='S'/>,
+         <repeat0>
+            <nonterminal name='parameter'/>*
+            <sep>(
+               <alts>
+                  <alt>
+                     <literal dstring=','/>,
+                     <nonterminal name='S'/>
+                  </alt>
+               </alts>)
+            </sep>
+         </repeat0>,
+         <literal dstring=')'/>,
+         <nonterminal name='S'/>
+      </alt>.
+   </rule>
+   <rule name='parameter'>:
+      <alt>
+         <nonterminal mark='-' name='expression'/>
+      </alt>.</rule>
+   <rule name='identifier'>:
+      <alt>
+         <repeat1>
+            <nonterminal name='letter'/>+
+         </repeat1>,
+         <nonterminal name='S'/>
+      </alt>.
+   </rule>
+   <rule name='expression'>:
+      <alt>
+         <nonterminal name='identifier'/>
+      </alt>;
+      <alt>
+         <nonterminal name='number'/>
+      </alt>.
+   </rule>
+   <rule name='number'>:
+      <alt>
+         <repeat1>
+            <nonterminal name='digit'/>+
+         </repeat1>,
+         <nonterminal name='S'/>
+      </alt>.
+   </rule>
+   <rule mark='-' name='letter'>:
+      <alt>
+         <inclusion>[
+            <range from='a' to='z'>-</range>]
+         </inclusion>
+      </alt>;
+      <alt>
+         <inclusion>[
+            <range from='A' to='Z'>-</range>]
+         </inclusion>
+      </alt>.
+   </rule>
+   <rule mark='-' name='digit'>:
+      <alt>
+         <inclusion>[
+            <range from='0' to='9'>-</range>]
+         </inclusion>
+      </alt>.
+   </rule>
+   <rule name='condition'>:
+      <alt>
+         <nonterminal name='identifier'/>
+      </alt>.
+   </rule>
+   <rule mark='-' name='S'>:
+      <alt>
+         <repeat0>
+            <literal dstring=' '/>*
+         </repeat0>
+      </alt>.
+   </rule>
+</ixml>
