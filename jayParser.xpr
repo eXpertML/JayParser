@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="21.1">
+    <meta>
+        <filters directoryPatterns="" filePatterns="\QjayParser.xpr\E" positiveFilePatterns="" showHiddenFiles="false"/>
+        <options/>
+    </meta>
+    <projectTree name="jayParser.xpr">
+        <folder path="."/>
+        <folder path="src/main/resources/grammars/"/>
+        <folder path="src/main/resources/xsl/"/>
+        <folder path="src/test/resources/xspec/"/>
+    </projectTree>
+</project>
