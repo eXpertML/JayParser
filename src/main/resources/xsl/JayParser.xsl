@@ -3,7 +3,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:math="http://www.w3.org/2005/xpath-functions/math"
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
-  xmlns:e="http://schema.expertml.com/EarleyParser"
+  xmlns:e="http://schema.expertml.com/JayParser"
   xmlns:map="http://www.w3.org/2005/xpath-functions/map"
   exclude-result-prefixes="xs math xd map e"
   version="3.0">
