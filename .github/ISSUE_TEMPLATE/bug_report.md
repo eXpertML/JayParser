@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Context (please complete the following information):**
  - XSLT Processor and version (e.g Saxon 9.8 HE)
+ - Grammar used (please attach if necessary!)
 
 **Additional context**
 Add any other context about the problem here.
