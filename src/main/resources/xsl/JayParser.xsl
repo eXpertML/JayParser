@@ -45,7 +45,7 @@
   <xsl:mode name="e:parseTree" on-no-match="shallow-copy"/>
   
   <xd:doc>
-    <xd:desc>ixml match template</xd:desc>
+    <xd:desc>ixml (Invisible XML root node) match template; iXML defines the start rule as the first rule.</xd:desc>
   </xd:doc>
   <xsl:template match="ixml" mode="e:parseTree">
     <xsl:apply-templates select="rule[1]" mode="#current">
@@ -55,9 +55,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc>rule match template</xd:desc>
-    <xd:param name="state"/>
-    <xd:param name="visited"/>
+    <xd:desc>rule match template.  This adds rules to the parse tree.</xd:desc>
+    <xd:param name="state">The current state number</xd:param>
+    <xd:param name="visited">The map of nonterminal rules visited, and associated states.</xd:param>
   </xd:doc>
   <xsl:template match="rule" mode="e:parseTree">
     <xsl:param name="state" tunnel="yes" as="xs:integer"/>
@@ -77,7 +77,7 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>The sep element is not needed in the parse tree</xd:desc>
   </xd:doc>
   <xsl:template match="sep" mode="e:parseTree">
     <xsl:call-template name="e:process_children">
@@ -86,9 +86,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="state"/>
-    <xd:param name="visited"/>
+    <xd:desc>Processes alternatives in rules, eliminating any redundant/visited sets of alternatives.</xd:desc>
+    <xd:param name="state">current state number</xd:param>
+    <xd:param name="visited">map of visited rules</xd:param>
   </xd:doc>
   <xsl:template match="alts" mode="e:parseTree">
     <xsl:param name="state" tunnel="yes" as="xs:integer"/>
@@ -121,9 +121,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="state"/>
-    <xd:param name="states"/>
+    <xd:desc>Converts alt to e:alt in parseTree, adding relevant state attributes.</xd:desc>
+    <xd:param name="state">state number</xd:param>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
   <xsl:template match="alt" mode="e:parseTree">
     <xsl:param name="state" tunnel="yes" as="xs:integer"/>
@@ -150,10 +150,10 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="grammar"/>
-    <xd:param name="state"/>
-    <xd:param name="visited"/>
+    <xd:desc>Adds nonterminal rules to the parseTree.  If a nonterminal is visited and doesn't have a recorded end state, it is assumed to have failed.  If it is visited with a recorded end state, these are recorded.</xd:desc>
+    <xd:param name="grammar">The invisible XML grammar as XML</xd:param>
+    <xd:param name="state">The current state reference number</xd:param>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
   </xd:doc>
   <xsl:template match="nonterminal" mode="e:parseTree">
     <xsl:param name="grammar" tunnel="yes"/>
@@ -182,11 +182,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    
-    <xd:param name="state"/>
-    
-    <xd:param name="states"/>
+    <xd:desc>Matches string literals and outputs them to the parse tree</xd:desc>
+    <xd:param name="state">The current state reference</xd:param>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
   <xsl:template match="literal[@dstring]" mode="e:parseTree">
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
@@ -209,9 +207,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="state"/>
-    <xd:param name="states"/>
+    <xd:desc>Processing of Character sets inclusions/exclusions.</xd:desc>
+    <xd:param name="state">The current state reference</xd:param>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
   <xsl:template match="inclusion|exclusion" mode="e:parseTree">
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
@@ -243,9 +241,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
-    <xd:param name="state"/>
+    <xd:desc>Template to create parse tree fragments for an optional repeat.  It does this by adding a choice between an empty parse result its content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
+    <xd:param name="visited">The map of visited nonterminals in various states</xd:param>
+    <xd:param name="state">The current state reference number.</xd:param>
   </xd:doc>
   <xsl:template match="repeat0" mode="e:parseTree">
     <xsl:param name="visited" tunnel="yes"/>
@@ -273,7 +271,7 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc></xd:desc>
+    <xd:desc>Template to create parse tree fragments for an optional rule.  It does this by adding a choice between an empty parse result its content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
   </xd:doc>
   <xsl:template match="option" mode="e:parseTree">
     <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
@@ -292,9 +290,8 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    
-    <xd:param name="state"/>
+    <xd:desc>Template to create parse tree fragments for an non-optional repeat.  It does this by adding its content, and then adding an optional repeat with the same content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
+    <xd:param name="state">The current state reference number.</xd:param>
   </xd:doc>
   <xsl:template match="repeat1" mode="e:parseTree">
     <xsl:param name="state" tunnel="yes"/>
@@ -310,9 +307,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
-    <xd:param name="state"/>
+    <xd:desc>Adds empty terminal rules to the parseTree, adding state references.</xd:desc>
+    <xd:param name="visited">The map of visited nonterminals in various states</xd:param>
+    <xd:param name="state">The current state reference number.</xd:param>
   </xd:doc>
   <xsl:template match="empty" mode="e:parseTree">
     <xsl:param name="visited" tunnel="yes"/>
@@ -324,11 +321,10 @@
   
   <xd:doc>
     <xd:desc>process sibling called template</xd:desc>
-    <xd:param name="children"/>
-    <xd:param name="state"/>
-    
-    <xd:param name="visited"/>
-    <xd:param name="states"/>
+    <xd:param name="children">The 'children' nodes to be processed.  This defaults to the children of the current nodes, as may be expected!</xd:param>
+    <xd:param name="visited">The map of visited nonterminals in various states</xd:param>
+    <xd:param name="state">The current state reference number.</xd:param>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
   <xsl:template name="e:process_children">
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>  
@@ -413,7 +409,7 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Copies regular expression granules</xd:desc>
   </xd:doc>
   <xsl:template match="text()" mode="e:charSetRegEx"/>
   
@@ -422,8 +418,8 @@
   <xsl:mode name="e:states" on-no-match="shallow-skip"/>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="states"/>
+    <xd:desc>Retuns the string value of @remaining (the state) if it is not already provided in $states</xd:desc>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
   <xsl:template match="*[@remaining ne '']" mode="e:states">
     <xsl:param tunnel="yes" name="states"/>
@@ -433,9 +429,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="states"/>
-    <xd:param name="nodes"/>
+    <xd:desc>Applies templates on $nodes to return a sequence of all unique descendant states held in @remaining attributes, or supplied in $states</xd:desc>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
+    <xd:param name="nodes">Nodes to search for new states</xd:param>
   </xd:doc>
   <xsl:function name="e:getStates" as="xs:string+">
     <xsl:param name="states" as="xs:string+"/>
@@ -451,8 +447,8 @@
   <xsl:mode name="e:visited" on-no-match="shallow-skip"/>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
+    <xd:desc>Adds rules to the $visited map</xd:desc>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
   </xd:doc>
   <xsl:template match="e:rule" mode="e:visited">
     <xsl:param name="visited" tunnel="yes" as="map(*)"/>
@@ -463,8 +459,8 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
+    <xd:desc>Adds nameless alternatives to the visited map</xd:desc>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
   </xd:doc>
   <xsl:template match="e:alts[@gid]" mode="e:visited">
     <xsl:param name="visited" tunnel="yes" as="map(*)"/>
@@ -475,8 +471,8 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
+    <xd:desc>Returns $visited map when there are no more nodes to visit</xd:desc>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
   </xd:doc>
   <xsl:template match="e:fail|e:empty|e:literal" mode="e:visited">
     <xsl:param name="visited" tunnel="yes"/>
@@ -484,9 +480,9 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="visited"/>
-    <xd:param name="nodes"/>
+    <xd:desc>This function returns the $visited map, updated with any rules or alternatives in a supplied set of $nodes</xd:desc>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
+    <xd:param name="nodes">Nodes to check for visited status</xd:param>
   </xd:doc>
   <xsl:function name="e:getVisited" as="map(*)">
     <xsl:param name="visited" as="map(*)"/>
@@ -502,8 +498,8 @@
   <xd:doc>
     <xd:desc>This function checks the $visited map for a $key containing a specified $state, and returns true if NOT present.</xd:desc>
     <xd:param name="visited">A map of which keys have been visited in which states</xd:param>
-    <xd:param name="key"/>
-    <xd:param name="state"/>
+    <xd:param name="key">The name of the nonterminal visited (or not)</xd:param>
+    <xd:param name="state">The state reference number in which the visit occured (or not)</xd:param>
   </xd:doc>
   <xsl:function name="e:unvisited" as="xs:boolean">
     <xsl:param name="visited" as="map(*)"/>
@@ -513,8 +509,8 @@
   </xsl:function>
   
   <xd:doc>
-    <xd:desc/>
-    <xd:param name="maps"/>
+    <xd:desc>This performs a custom recursive merge of visited maps</xd:desc>
+    <xd:param name="maps">The visited maps to be merged</xd:param>
   </xd:doc>
   <xsl:function name="e:rmerge" as="map(*)">
     <xsl:param name="maps" as="map(*)+"/>
@@ -546,10 +542,10 @@
   
   <xd:doc>
     <xd:desc>This function returns a new $visited map updated with the new $key, $state and $endState</xd:desc>
-    <xd:param name="visited"/>
-    <xd:param name="key"/>
-    <xd:param name="state"/>
-    <xd:param name="endStates"/>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
+    <xd:param name="key">The rule name to be updated</xd:param>
+    <xd:param name="state">The state to be updated</xd:param>
+    <xd:param name="endStates">The end states (if any) to be updated</xd:param>
   </xd:doc>
   <xsl:function name="e:visit" as="map(*)">
     <xsl:param name="visited" as="map(*)"/>
@@ -561,10 +557,10 @@
   </xsl:function>
   
   <xd:doc>
-    <xd:desc>Option for e:visit with implied value for $endState</xd:desc>
-    <xd:param name="visited"/>
-    <xd:param name="key"/>
-    <xd:param name="state"/>
+    <xd:desc>Option for e:visit with implied (empty) value for $endState</xd:desc>
+    <xd:param name="visited">The map of visited rules and associated states</xd:param>
+    <xd:param name="key">The rule name to be updated</xd:param>
+    <xd:param name="state">The state to be updated</xd:param>
   </xd:doc>
   <xsl:function name="e:visit" as="map(*)">
     <xsl:param name="visited" as="map(*)"/>
@@ -578,14 +574,14 @@
   <xsl:mode name="e:pruneTree" on-no-match="deep-skip"/>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>The containing parseTree parent is not required on output</xd:desc>
   </xd:doc>
   <xsl:template match="e:parseTree" mode="e:pruneTree">
     <xsl:apply-templates mode="#current"/>
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Grammar rules are replaced with their children</xd:desc>
   </xd:doc>
   <xsl:template match="e:rule[not(@mark) and @ends ne '']" mode="e:pruneTree">
     <xsl:variable name="children" as="node()*">
@@ -608,10 +604,8 @@
     </xsl:if>
   </xsl:template>
   
-  <xsl:key name="toKeep" match="e:empty|e:literal" use="ancestor::*!generate-id()"/>
-  
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Grammar rules with the '-' mark are replaced by their content</xd:desc>
   </xd:doc>
   <xsl:template match="e:rule[@mark eq '-' and @ends ne '']" mode="e:pruneTree">
       <xsl:choose>
@@ -625,7 +619,7 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>This implementation returns the first of any valid alternate parse</xd:desc>
   </xd:doc>
   <xsl:template match="e:alts" name="e:process_alts" mode="e:pruneTree">
     <xsl:variable name="alts" as="element(e:alt)*">
@@ -635,7 +629,7 @@
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Adds the content of non-empty alternatives</xd:desc>
   </xd:doc>
   <xsl:template match="e:alt[not(e:fail)]" mode="e:pruneTree">
     <xsl:variable name="alt" as="node()*">
@@ -649,17 +643,20 @@
     </xsl:if>
   </xsl:template>
   
+  <xd:doc>
+    <xd:desc>This key indexes nonterminal rules in particular states using the rule name prepended by the state reference.</xd:desc>
+  </xd:doc>
   <xsl:key name="ntByNameState" match="e:rule" use="concat(@state, @name)"/>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Adds the content of any nonterminal that has already been processed.</xd:desc>
   </xd:doc>
   <xsl:template match="e:nt" mode="e:pruneTree">
     <xsl:apply-templates select="key('ntByNameState', concat(@state, @name))" mode="#current"/>
   </xsl:template>
   
   <xd:doc>
-    <xd:desc/>
+    <xd:desc>Adds the content of literals from the parseTree</xd:desc>
   </xd:doc>
   <xsl:template match="e:literal" mode="e:pruneTree">
     <xsl:value-of select="string(.)"/>
@@ -669,7 +666,7 @@
   
   <xd:doc>
     <xd:desc>This function parses $local.input with the default grammar</xd:desc>
-    <xd:param name="local.input"/>
+    <xd:param name="local.input">A string to parse with the default grammar</xd:param>
   </xd:doc>
   <xsl:function name="e:parse">
     <xsl:param name="local.input" as="xs:string"/>
@@ -678,8 +675,8 @@
   
   <xd:doc>
     <xd:desc>This function parses $local.input with a user defined grammar (e.g. where the grammar itself has been generated by a parse operation).</xd:desc>
-    <xd:param name="local.input"/>
-    <xd:param name="local.grammar"/>
+    <xd:param name="local.input">A string to parse with the $local.grammar grammar</xd:param>
+    <xd:param name="local.grammar">An invisible XML grammar as an XML document node.</xd:param>
   </xd:doc>
   <xsl:function name="e:parse-with-grammar">
     <xsl:param name="local.input" as="xs:string"/>
