@@ -625,7 +625,7 @@
     <xsl:variable name="alts" as="element(e:alt)*">
       <xsl:apply-templates mode="#current"/>
     </xsl:variable>
-    <xsl:sequence select="$alts[1]/node()"/>
+    <xsl:copy-of copy-namespaces="false" select="$alts[1]/node()"/>
   </xsl:template>
   
   <xd:doc>
@@ -688,9 +688,7 @@
       </xsl:apply-templates>
     </xsl:variable>
     <xsl:variable name="pruneTree">
-      <xsl:apply-templates select="$parseTree" mode="e:pruneTree">
-        <xsl:with-param name="parseTree" tunnel="yes" select="$parseTree"/>
-      </xsl:apply-templates>
+      <xsl:apply-templates select="$parseTree" mode="e:pruneTree"/>
     </xsl:variable>
     <xsl:choose>
       <xsl:when test="$debug or count($pruneTree) gt 1">
