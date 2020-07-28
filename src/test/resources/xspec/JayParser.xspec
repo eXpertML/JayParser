@@ -83,42 +83,40 @@ letter: ["a"-"z"; "A"-"Z"].]]>
       <x:param name="local.input" select="'£12.50'"/>
       <x:param name="local.grammar" select="/">
         <ixml>
-          <rule name="price">
-            <alt>
+          <rule name="price">: <alt>
               <option>
-                <alts>
-                  <alt>
-                    <nonterminal name="currency"/>
-                  </alt>
-                </alts>
+                <nonterminal name="currency"/>
               </option>
+              <nonterminal name="decimal"/>
+            </alt>
+          </rule>
+          <rule mark="-" name="decimal">
+            <alt>
               <nonterminal name="number"/>
               <option>
-                <alts>
-                  <alt>
-                    <literal dstring="."/>
-                    <nonterminal name="number"/>
-                  </alt>
-                </alts>
+                <literal dstring="."/>
+                <nonterminal name="number"/>
               </option>
             </alt>
           </rule>
-          <rule name="number">: <alt>
+          <rule mark="-" name="number">
+            <alt>
               <repeat1>
-                <nonterminal name="digit"/>+ </repeat1>, <nonterminal name="S"/>
-            </alt>. </rule>
-          <rule mark="-" name="digit">: <alt>
-              <inclusion>[ <range from="0" to="9">-</range>] </inclusion>
-            </alt>. </rule>
+                <nonterminal name="digit"/>
+              </repeat1>
+            </alt>
+          </rule>
+          <rule mark="-" name="digit">
+            <alt>
+              <inclusion>
+                <range from="0" to="9"/>
+              </inclusion>
+            </alt>
+          </rule>
           <rule mark="@" name="currency">
-            <alts>
-              <alt>
-                <literal dstring="£"/>
-              </alt>
-              <alt>
-                <literal dstring="$"/>
-              </alt>
-            </alts>
+            <alt>
+              <inclusion>[<literal dstring="$£€"/>]</inclusion>
+            </alt>
           </rule>
         </ixml>
       </x:param>
@@ -126,7 +124,7 @@ letter: ["a"-"z"; "A"-"Z"].]]>
     <x:expect label="expected output" select="/">
       <price currency="£">12.50</price>
     </x:expect>
-    <x:expect label="Output the currency as an attribue" select="/price/@currency">£</x:expect>
+    <x:expect label="Output the currency as an attribute" test="/price[1]/@currency eq '£'"/>
   </x:scenario>
   <x:scenario label="when processing a rule with a '^'" pending="to be implemented"></x:scenario>
   <x:scenario label="when processing a rule with a '-'">

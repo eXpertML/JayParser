@@ -342,8 +342,8 @@
           <xsl:when test="$first[self::e:alt]">
             <xsl:sequence select="$state"/>
           </xsl:when>
-          <xsl:when test="$first/@ends[. ne '']">
-            <xsl:sequence select="distinct-values($first/@ends ! tokenize(., ' ')) ! xs:integer(.)"/>
+          <xsl:when test="$first//@ends[. ne '']">
+            <xsl:sequence select="distinct-values($first//@ends ! tokenize(., ' ')) ! xs:integer(.)"/>
           </xsl:when>
           <xsl:otherwise>
             <xsl:sequence select="$state"/>
@@ -605,6 +605,24 @@
   </xsl:template>
   
   <xd:doc>
+    <xd:desc>Grammar rules with the '@' mark are captured as attributes</xd:desc>
+  </xd:doc>
+  <xsl:template match="e:rule[@mark eq '@' and @ends ne '']" mode="e:pruneTree">
+    <xsl:where-populated>
+      <xsl:attribute name="{@name}">
+        <xsl:choose>
+          <xsl:when test="e:alt">
+            <xsl:call-template name="e:process_alts"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:apply-templates mode="#current"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:attribute>
+    </xsl:where-populated>
+  </xsl:template>
+  
+  <xd:doc>
     <xd:desc>Grammar rules with the '-' mark are replaced by their content</xd:desc>
   </xd:doc>
   <xsl:template match="e:rule[@mark eq '-' and @ends ne '']" mode="e:pruneTree">
@@ -625,7 +643,7 @@
     <xsl:variable name="alts" as="element(e:alt)*">
       <xsl:apply-templates mode="#current"/>
     </xsl:variable>
-    <xsl:copy-of copy-namespaces="false" select="$alts[1]/node()"/>
+    <xsl:copy-of copy-namespaces="false" select="$alts[1]/(@*, node())"/>
   </xsl:template>
   
   <xd:doc>
@@ -637,8 +655,8 @@
     </xsl:variable>
     <xsl:if test="$alt">
       <xsl:copy copy-namespaces="false">
-        <xsl:copy-of select="@*" copy-namespaces="false"/>
-        <xsl:sequence select="$alt"/>
+        <xsl:copy-of select="$alt[self::attribute()]"/>
+        <xsl:sequence select="$alt[not(self::attribute())]"/>
       </xsl:copy>
     </xsl:if>
   </xsl:template>
