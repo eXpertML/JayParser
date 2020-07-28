@@ -19,7 +19,7 @@
   <xsl:output indent="yes" method="xml"/>
   
   <xsl:param name="input" as="xs:string" select="'{a=0}'"/>
-  <xsl:param name="grammar" as="document-node(element(ixml))" select="doc('../../../../samples/Program.ixml')"/>
+  <xsl:param name="grammar" as="document-node(element(ixml))" select="/"/>
   <xsl:param name="debug" as="xs:boolean" select="false()"/>
   
   <xsl:key name="ruleByName" match="rule" use="@name"/>
@@ -277,7 +277,7 @@
     <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
     <xsl:call-template name="e:process_children">
       <xsl:with-param name="children">
-        <alts gid="$GID">
+        <alts gid="{$GID}">
           <alt>
             <empty/>
           </alt>
