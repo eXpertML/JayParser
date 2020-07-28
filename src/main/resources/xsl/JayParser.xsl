@@ -409,6 +409,13 @@
   </xsl:template>
   
   <xd:doc>
+    <xd:desc>Model specific allowed characters in regex</xd:desc>
+  </xd:doc>
+  <xsl:template match="literal[@dstring]" mode="e:charSetRegEx">
+    <xsl:value-of select="@dstring"/>
+  </xsl:template>
+  
+  <xd:doc>
     <xd:desc>Copies regular expression granules</xd:desc>
   </xd:doc>
   <xsl:template match="text()" mode="e:charSetRegEx"/>
