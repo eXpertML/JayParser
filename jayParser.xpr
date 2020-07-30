@@ -6,15 +6,19 @@
             <serialized version="22.1" xml:space="preserve">
                 <serializableOrderedMap>
                     <entry>
+                        <String>enable.project.master.files.support</String>
+                        <Boolean>true</Boolean>
+                    </entry>
+                    <entry>
                         <String>scenario.associations</String>
                         <scenarioAssociation-array>
                             <scenarioAssociation>
                                 <field name="url">
-                                    <String>samples/Program.ixml</String>
+                                    <String>src/main/resources/grammars/ixml.xml</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
-                                        <String>JayParser - Poc</String>
+                                        <String>JayParser - Dogfood test</String>
                                     </list>
                                 </field>
                                 <field name="scenarioTypes">
@@ -31,6 +35,26 @@
                             <scenarioAssociation>
                                 <field name="url">
                                     <String>src/main/resources/xsl/JayParser.xsl</String>
+                                </field>
+                                <field name="scenarioIds">
+                                    <list>
+                                        <String>JayParser - Dogfood test</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioTypes">
+                                    <list>
+                                        <String>XML</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioStorageLocations">
+                                    <list>
+                                        <Byte>2</Byte>
+                                    </list>
+                                </field>
+                            </scenarioAssociation>
+                            <scenarioAssociation>
+                                <field name="url">
+                                    <String>samples/Program.ixml</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -76,10 +100,10 @@
                                     <String></String>
                                 </field>
                                 <field name="inputXSLURL">
-                                    <String>file:/Users/yamahito/Documents/JayParser/src/main/resources/xsl/JayParser.xsl</String>
+                                    <String>${pdu}/src/main/resources/xsl/JayParser.xsl</String>
                                 </field>
                                 <field name="inputXMLURL">
-                                    <String>file:/Users/yamahito/Documents/JayParser/src/main/resources/grammars/ixml.xml</String>
+                                    <String>${pdu}/src/main/resources/grammars/ixml.xml</String>
                                 </field>
                                 <field name="defaultScenario">
                                     <Boolean>false</Boolean>
@@ -106,13 +130,13 @@
                                     <null/>
                                 </field>
                                 <field name="openInEditor">
-                                    <Boolean>false</Boolean>
+                                    <Boolean>true</Boolean>
                                 </field>
                                 <field name="showInHTMLPane">
                                     <Boolean>false</Boolean>
                                 </field>
                                 <field name="showInXMLPane">
-                                    <Boolean>true</Boolean>
+                                    <Boolean>false</Boolean>
                                 </field>
                                 <field name="showInSVGPane">
                                     <Boolean>false</Boolean>
@@ -125,30 +149,6 @@
                                 </field>
                                 <field name="xsltParams">
                                     <list>
-                                        <transformationParameter>
-                                            <field name="paramDescription">
-                                                <paramDescriptor>
-                                                    <field name="localName">
-                                                        <String>grammar</String>
-                                                    </field>
-                                                    <field name="prefix">
-                                                        <null/>
-                                                    </field>
-                                                    <field name="namespace">
-                                                        <null/>
-                                                    </field>
-                                                </paramDescriptor>
-                                            </field>
-                                            <field name="value">
-                                                <String>doc('../../../../samples/Program.ixml')</String>
-                                            </field>
-                                            <field name="hasXPathValue">
-                                                <Boolean>false</Boolean>
-                                            </field>
-                                            <field name="isStatic">
-                                                <Boolean>false</Boolean>
-                                            </field>
-                                        </transformationParameter>
                                         <transformationParameter>
                                             <field name="paramDescription">
                                                 <paramDescriptor>
@@ -337,6 +337,9 @@ letter: ["a"-"z"; "A"-"Z"].</String>
         </options>
     </meta>
     <projectTree name="jayParser.xpr">
+        <folder masterFiles="true" name="Master Files">
+            <file name="src/test/resources/xsl/generate-xspec.xsl"/>
+        </folder>
         <folder path="."/>
         <folder path="src/main/resources/grammars/"/>
         <folder path="src/main/resources/xsl/"/>

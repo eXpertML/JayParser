@@ -37,7 +37,7 @@
     <xd:desc>This template exists to run the initial POC parse operation</xd:desc>
   </xd:doc>
   <xsl:template name="xsl:initial-template">
-    <xsl:sequence select="e:parse($input)"/>
+    <xsl:sequence select="e:parse-tree($input)"/>
   </xsl:template>
     
   <!-- e:parseTree mode (used for building the parse tree) -->
@@ -406,6 +406,15 @@
     <xsl:value-of select="@from"/>
     <xsl:text>-</xsl:text>
     <xsl:value-of select="@to"/>
+  </xsl:template>
+  
+  <xd:doc>
+    <xd:desc>Model classes</xd:desc>
+  </xd:doc>
+  <xsl:template match="class" mode="e:charSetRegEx">
+    <xsl:text>\p{</xsl:text>
+    <xsl:value-of select="@code"/>
+    <xsl:text>}</xsl:text>
   </xsl:template>
   
   <xd:doc>

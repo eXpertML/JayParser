@@ -4,7 +4,7 @@
   <x:param name="debug" select="false()"/>
   
 <!--   Eat your own Dogfood -->
-  <!--<x:scenario label="when parsing the iXML (compact) grammar">
+  <x:scenario label="when parsing the iXML (compact) grammar">
     <x:call function="e:parse-with-grammar">
       <x:param name="local.input"><![CDATA[
 ixml: S, rule+.
@@ -74,11 +74,14 @@ letter: ["a"-"z"; "A"-"Z"].]]>
       <x:param name="local.grammar" href="../../../../samples/ixml.ixml"/>
     </x:call>
     <x:expect label="Expect to return the iXML (xml) grammar" href="../../../../samples/ixml.ixml"/>
-  </x:scenario>-->
+  </x:scenario>
   
+  <!-- Invisible XML Spec Requirements: Nonterminals -->
+  
+  <x:scenario label="testing XSpec Nonterminal handling" pending="to be written"/>
   
   <!-- Invisible XML Spec Requirements: Marks -->
-  <x:scenario label="when processing a rule with a '@'">
+  <x:scenario label="Processing Marks">
     <x:call function="e:parse-with-grammar">
       <x:param name="local.input" select="'£12.50'"/>
       <x:param name="local.grammar" select="/">
@@ -125,31 +128,9 @@ letter: ["a"-"z"; "A"-"Z"].]]>
       <price currency="£">12.50</price>
     </x:expect>
     <x:expect label="Output the currency as an attribute" test="/price[1]/@currency eq '£'"/>
+    <x:expect label="Do not output the marked elements" test="/price[1]/text() eq '12.50'"/>
   </x:scenario>
   <x:scenario label="when processing a rule with a '^'" pending="to be implemented"></x:scenario>
-  <x:scenario label="when processing a rule with a '-'">
-    <x:call function="e:parse-with-grammar">
-      <x:param name="local.input" select="'12345'"/>
-      <x:param name="local.grammar" select="/">
-        <ixml>
-          <rule name="number">:
-            <alt>
-              <repeat1>
-                <nonterminal name="digit"/>+ </repeat1>, <nonterminal name="S"/>
-            </alt>.
-          </rule>
-          <rule mark="-" name="digit">: 
-            <alt>
-              <inclusion>[ <range from="0" to="9">-</range>] </inclusion>
-            </alt>. 
-          </rule>
-        </ixml>
-      </x:param>
-    </x:call>
-    <x:expect label="Do not output the marked elements" select="/">
-      <number>12345</number>
-    </x:expect>
-  </x:scenario>
   <x:scenario label="when processing rules without a mark">
     <x:call function="e:parse-with-grammar">
       <x:param name="local.input" select="'12345'"/>
