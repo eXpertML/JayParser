@@ -25,14 +25,6 @@
   <xsl:key name="ruleByName" match="rule" use="@name"/>
   
   <!-- initial templates -->
-  
-  <xd:doc>
-    <xd:desc>Initial templates often don't work as expected...</xd:desc>
-  </xd:doc>
-  <xsl:template match="/">
-    <xsl:call-template name="xsl:initial-template"/>
-  </xsl:template>
-  
   <xd:doc>
     <xd:desc>This template exists to run the initial POC parse operation</xd:desc>
   </xd:doc>

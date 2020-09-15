@@ -14,7 +14,7 @@
                         <scenarioAssociation-array>
                             <scenarioAssociation>
                                 <field name="url">
-                                    <String>src/main/resources/grammars/ixml.xml</String>
+                                    <String>src/main/resources/xsl/JayParser.xsl</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -34,7 +34,7 @@
                             </scenarioAssociation>
                             <scenarioAssociation>
                                 <field name="url">
-                                    <String>src/main/resources/xsl/JayParser.xsl</String>
+                                    <String>src/main/resources/grammars/ixml.xml</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -79,7 +79,64 @@
                         <scenario-array>
                             <scenario>
                                 <field name="advancedOptionsMap">
-                                    <null/>
+                                    <serializableOrderedMap>
+                                        <entry>
+                                            <String>Saxon-PE</String>
+                                            <xsltSaxonBAdvancedOptions>
+                                                <field name="allowCallsOnExtensionFunctions">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="registerSaxonCEExtensions">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="enableAssertions">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="showVersionWarnings">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="dtdSourceValidation">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="dtdSourceValidationRecover">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="lineNumbering">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="initialMode">
+                                                    <null/>
+                                                </field>
+                                                <field name="initialTemplate">
+                                                    <String>{http://www.w3.org/1999/XSL/Transform}initial-template</String>
+                                                </field>
+                                                <field name="traceXPathExpression">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="expandAttributeDefaults">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="errorRecoverPolicy">
+                                                    <String>saxon.recover.with.warning</String>
+                                                </field>
+                                                <field name="stripWS">
+                                                    <String>saxon.strip.ws.ignorable</String>
+                                                </field>
+                                                <field name="optimizationEnabled">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="useConfigFile">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="configSystemID">
+                                                    <String>${pdu}/pf-saxon-conf.xml</String>
+                                                </field>
+                                                <field name="initializer">
+                                                    <String></String>
+                                                </field>
+                                            </xsltSaxonBAdvancedOptions>
+                                        </entry>
+                                    </serializableOrderedMap>
                                 </field>
                                 <field name="name">
                                     <String>JayParser - Dogfood test</String>
@@ -164,72 +221,10 @@
                                                 </paramDescriptor>
                                             </field>
                                             <field name="value">
-                                                <String>ixml: S, rule+.
-         -S: (whitespace; comment)*.
--whitespace: -[Zs]; tab; lf; cr.
-       -tab: -#9.
-        -lf: -#a.
-        -cr: -#d.
-    comment: -"{", (cchar; comment)*, -"}".
-     -cchar: ~["{}"].
-rule: (mark, S)?, name, S, ["=:"], S, -alts, ".", S.
-@mark: ["@^-"].
-alts: alt+([";|"], S).
-alt: term*(",", S).
--term: factor;
-       option;
-       repeat0;
-       repeat1.
--factor: terminal;
-         nonterminal;
-         "(", S, alts, ")", S.
-repeat0: factor, "*", S, sep?.
-repeat1: factor, "+", S, sep?.
-option: factor, "?", S.
-sep: factor.
-nonterminal: (mark, S)?, name, S.
-
--terminal: literal; 
-           charset.
-  literal: quoted;
-           encoded.
-  -quoted: (tmark, S)?, -string.
-
-        @name: namestart, namefollower*.
-   -namestart: ["_"; Ll; Lu; Lm; Lt; Lo].
--namefollower: namestart; ["-.·‿⁀"; Nd; Mn].
-
-  @tmark: ["^-"].
-  string: -'"', dstring, -'"', S;
-          -"'", sstring, -"'", S.
-@dstring: dchar+.
-@sstring: schar+.
-   dchar: ~['"'];
-          '"', -'"'. {all characters, quotes must be doubled}
-   schar: ~["'"];
-          "'", -"'". {all characters, quotes must be doubled}
--encoded: (tmark, S)?, -"#", @hex, S.
-     hex: ["0"-"9"; "a"-"f"; "A"-"F"]+.
-
- -charset: inclusion; 
-           exclusion.
-inclusion: (tmark, S)?,         set.
-exclusion: (tmark, S)?, "~", S, set.
-     -set: "[", S,  member+([";|"], S), "]", S.
-  -member: literal;
-           range;
-           class.
-range: from, "-", S, to.
-@from: character.
-  @to: character.
--character: -'"', dchar, -'"', S;
-            -"'", schar, -"'", S;
-            "#", hex, S.
-class: letter, letter, S.
-letter: ["a"-"z"; "A"-"Z"].</String>
+                                                <String>unparsed-text('../grammars/ixml.txt')</String>
                                             </field>
                                             <field name="hasXPathValue">
-                                                <Boolean>false</Boolean>
+                                                <Boolean>true</Boolean>
                                             </field>
                                             <field name="isStatic">
                                                 <Boolean>false</Boolean>
