@@ -20,7 +20,7 @@
   
   <xsl:param name="input" as="xs:string" select="'{a=0}'"/>
   <xsl:param name="grammar" as="document-node(element(ixml))" select="/"/>
-  <xsl:param name="debug" as="xs:boolean" select="false()"/>
+  <xsl:param name="debug" as="xs:boolean" select="false()" static="true"/>
   
   <xsl:key name="ruleByName" match="rule" use="@name"/>
   
@@ -29,6 +29,7 @@
     <xd:desc>This template exists to run the initial POC parse operation</xd:desc>
   </xd:doc>
   <xsl:template name="xsl:initial-template">
+  	<xsl:comment select="$input" use-when="$debug"/>
     <xsl:sequence select="e:parse-tree($input)"/>
   </xsl:template>
     
