@@ -169,38 +169,13 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
-  <xd:doc>
-    <xd:desc>Matches string literals and outputs them to the parse tree</xd:desc>
-    <xd:param name="state">The current state reference</xd:param>
-    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
-  </xd:doc>
-  <xsl:template match="literal[@dstring]" mode="e:parseTree">
-    <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
-    <xsl:param name="state" as="xs:integer" tunnel="yes"/>
-    <xsl:variable name="match" as="xs:boolean" select="starts-with($states[$state], @dstring)"/>
-    <xsl:choose>
-      <xsl:when test="$match">
-        <xsl:variable name="remaining" select="substring-after($states[$state], @dstring)"/>
-        <xsl:variable name="altered.states" select="($states, $remaining[not(. = $states)])"/>
-        <xsl:variable name="ends" select="index-of($altered.states, $remaining)" as="xs:integer*"/>
-        <e:literal state="{$state}" ends="{if ($remaining eq '') then 0 else string-join($ends, ' ')}">
-          <xsl:attribute name="remaining" select="$remaining"/>
-          <xsl:value-of select="@dstring"/>
-        </e:literal>
-      </xsl:when>
-      <xsl:otherwise>
-        <e:fail state="{$state}" string="{@dstring}"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  
+	
   <xd:doc>
     <xd:desc>Processing of Character sets inclusions/exclusions.</xd:desc>
     <xd:param name="state">The current state reference</xd:param>
     <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
-  <xsl:template match="inclusion|exclusion" mode="e:parseTree">
+  <xsl:template match="inclusion|exclusion|literal" mode="e:parseTree">
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
     <xsl:param name="state" as="xs:integer" tunnel="yes"/>
     <xsl:variable name="regex" as="xs:string">
@@ -211,17 +186,18 @@
       </xsl:variable>
       <xsl:sequence select="string-join($seq)"/>
     </xsl:variable>
-    <xsl:variable name="match" as="xs:boolean" select="matches($states[$state], $regex)"/>
+    <xsl:variable name="match" as="xs:boolean" select="matches($states[$state], $regex, 's')"/>
     <xsl:choose>
       <xsl:when test="$match">
-        <xsl:variable name="matched" as="xs:string" select="replace($states[$state], $regex, '$1')"/>
+    		<xsl:variable name="matched" select="replace($states[$state], $regex, '$1', 's')" as="xs:string"/>
         <xsl:variable name="remaining" select="substring-after($states[$state], $matched)"/>
-        <xsl:variable name="altered.states" select="($states, $remaining[not(. = $states)])"/>
+        <xsl:variable name="altered.states" select="($states, $remaining[not($remaining = $states)])"/>
         <xsl:variable name="ends" select="index-of($altered.states, $remaining)" as="xs:integer*"/>
-        <e:literal state="{$state}" ends="{if ($remaining eq '') then 0 else string-join($ends, ' ')}">
-            <xsl:attribute name="remaining" select="$remaining"/>      
-          <xsl:value-of select="$matched"/>
-        </e:literal>
+				<e:literal state="{$state}" ends="{if ($remaining eq '') then 0 else string-join($ends, ' ')}">
+					<xsl:copy-of select="@tmark"/>
+					<xsl:attribute name="remaining" select="$remaining"/>
+					<xsl:value-of select="$matched"/>
+				</e:literal>
       </xsl:when>
       <xsl:otherwise>
         <e:fail state="{$state}" regex="{$regex}"/>
@@ -368,7 +344,9 @@
     </xsl:if>
   </xsl:template>
   
-  <!-- Building regex from 'inclusion' or 'exclusion' -->
+  <!-- Building regex from 'literal', 'inclusion' or 'exclusion' -->
+	
+	<xsl:mode name="e:charSetRegEx" on-multiple-match="use-last" warning-on-multiple-match="false"/>
    
   <xd:doc>
     <xd:desc>Model inclusion as regex range</xd:desc>
@@ -409,9 +387,40 @@
   <xd:doc>
     <xd:desc>Model specific allowed characters in regex</xd:desc>
   </xd:doc>
-  <xsl:template match="literal[@dstring]" mode="e:charSetRegEx">
-    <xsl:value-of select="@dstring"/>
+  <xsl:template match="literal" mode="e:charSetRegEx">
+  	<xsl:apply-templates select="@*" mode="#current"/>
   </xsl:template>
+	
+	<xd:doc>
+		<xd:desc>By default ignore attribute values (exceptions follow)</xd:desc>
+	</xd:doc>
+	<xsl:template match="@*" mode="e:charSetRegEx"/>
+	
+	<xd:doc>
+		<xd:desc>Matches strings allowed in double quotes</xd:desc>
+	</xd:doc>
+	<xsl:template match="@dstring" mode="e:charSetRegEx">
+		<xsl:value-of select="e:escape-regex(.)"/>
+	</xsl:template>
+	
+	<xd:doc>
+		<xd:desc>Matches strings allowed in single quotes</xd:desc>
+	</xd:doc>
+	<xsl:template match="@sstring" mode="e:charSetRegEx">
+		<xsl:value-of select='e:escape-regex(.)'/>
+	</xsl:template>
+	
+	<xd:doc>
+		<xd:desc>Matches strings allowed in hex escapes</xd:desc>
+	</xd:doc>
+	<xsl:template match="@hex" mode="e:charSetRegEx">
+		<xsl:choose>
+			<xsl:when test="string(.) eq '9'"><xsl:text>&#x9;</xsl:text></xsl:when>
+			<xsl:when test="string(.) eq 'a'"><xsl:text>&#xa;</xsl:text></xsl:when>
+			<xsl:when test="string(.) eq 'd'"><xsl:text>&#xd;</xsl:text></xsl:when>
+			<xsl:otherwise><xsl:text>weird</xsl:text></xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
   
   <xd:doc>
     <xd:desc>Copies regular expression granules</xd:desc>
@@ -426,9 +435,9 @@
     <xd:desc>Retuns the string value of @remaining (the state) if it is not already provided in $states</xd:desc>
     <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
   </xd:doc>
-  <xsl:template match="*[@remaining ne '']" mode="e:states">
+  <xsl:template match="*[@remaining ne '']" mode="e:states" as="xs:string?">
     <xsl:param tunnel="yes" name="states"/>
-    <xsl:if test="not(@remaining = $states)">
+    <xsl:if test="not(string(@remaining) = $states)">
       <xsl:sequence select="string(@remaining)"/>
     </xsl:if>
   </xsl:template>
@@ -684,6 +693,52 @@
   <xsl:template match="e:literal" mode="e:pruneTree">
     <xsl:value-of select="string(.)"/>
   </xsl:template>
+	
+	<!-- General Functions -->
+	
+	<xd:doc>
+		<xd:desc>Converts hexadecimal strings to xs:integer</xd:desc>
+		<xd:param name="hexString">The hex string to be used</xd:param>
+	</xd:doc>
+	<xsl:function name="e:hexToDecimal" as="xs:integer">
+		<xsl:param name="hexString"/>
+		<xsl:variable name="valueMap" as="map(xs:string, xs:integer)">
+			<xsl:map>
+				<xsl:iterate select="(0 to 9, 'a', 'b', 'c', 'd', 'e', 'f')">
+					<xsl:param name="decValue" select="0" as="xs:integer"/>
+					<xsl:map-entry key="string(.)" select="$decValue"/>
+					<xsl:next-iteration>
+						<xsl:with-param name="decValue" select="$decValue + 1"/>
+					</xsl:next-iteration>
+				</xsl:iterate>
+			</xsl:map>
+		</xsl:variable>
+		<xsl:variable name="hexSequence" select="$hexString => lower-case() => e:splitString() => reverse()"/>
+		<xsl:if test="not($hexSequence = ((0 to 9)!string(), 'a', 'b', 'c', 'd', 'e', 'f'))">
+			<xsl:sequence select="error((), $hexString||' is not a hexadecimal value!')"/>
+		</xsl:if>
+		<xsl:value-of select="sum(for $hex in $hexSequence return $valueMap($hex) * (index-of($hexSequence, $hex)))"/>
+	</xsl:function>
+	
+	<xd:doc>
+		<xd:desc>Converts strings into a sequence of characters</xd:desc>
+		<xd:param name="string"></xd:param>
+	</xd:doc>
+	<xsl:function name="e:splitString" as="xs:string*">
+		<xsl:param name="string" as="xs:string*"/>
+		<xsl:for-each select="$string[not(. eq '')]">
+			<xsl:sequence select="substring(., 1, 1), substring(., 2) => e:splitString()"/>
+		</xsl:for-each>
+	</xsl:function>
+	
+	<xd:doc>
+		<xd:desc>Escapes strings for use as regex strings</xd:desc>
+		<xd:param name="string">String value to be escaped</xd:param>
+	</xd:doc>
+	<xsl:function name="e:escape-regex" as="xs:string?">
+		<xsl:param name="string" as="xs:string?"/>
+		<xsl:value-of select="replace($string, '(\.|\[|\]|\\|\||\-|\^|\$|\?|\*|\+|\{|\}|\(|\))','\\$1')"/>
+	</xsl:function>
   
   <!-- parsing function -->
   
