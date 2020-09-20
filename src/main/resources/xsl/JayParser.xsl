@@ -62,9 +62,7 @@
       <xsl:attribute name="state" select="$state"/>
       <xsl:attribute name="ends" select="$children/*/@ends ! tokenize(., '\s') => distinct-values() => string-join(' ')"/>
       <xsl:apply-templates select="@*" mode="#current"/>
-      <xsl:if test="$debug">
-        <xsl:comment>visited: <xsl:value-of select="serialize($visited, map{'method':'json', 'indent':true()})"/></xsl:comment>
-      </xsl:if>
+			<xsl:comment use-when="$debug">visited: <xsl:value-of select="serialize($visited, map{'method':'json', 'indent':true()})"/></xsl:comment>
       <xsl:sequence select="$children"/>
     </e:rule>
   </xsl:template>
@@ -101,9 +99,7 @@
             <xsl:attribute name="ends" select="$children/*/@ends ! tokenize(., '\s') => distinct-values() => string-join(' ')"/>
           </xsl:if>
           <xsl:apply-templates select="@gid" mode="#current"/>
-          <xsl:if test="$debug">
-            <xsl:comment>visited in state <xsl:value-of select="$state"/>: <xsl:value-of select="serialize($visited, map{'method':'json', 'indent':true()})"/></xsl:comment>
-          </xsl:if>
+          <xsl:comment use-when="$debug">visited in state <xsl:value-of select="$state"/>: <xsl:value-of select="serialize($visited, map{'method':'json', 'indent':true()})"/></xsl:comment>
           <xsl:sequence select="$children"/>
         </e:alts>
       </xsl:when>
