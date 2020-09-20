@@ -414,12 +414,7 @@
 		<xd:desc>Matches strings allowed in hex escapes</xd:desc>
 	</xd:doc>
 	<xsl:template match="@hex" mode="e:charSetRegEx">
-		<xsl:choose>
-			<xsl:when test="string(.) eq '9'"><xsl:text>&#x9;</xsl:text></xsl:when>
-			<xsl:when test="string(.) eq 'a'"><xsl:text>&#xa;</xsl:text></xsl:when>
-			<xsl:when test="string(.) eq 'd'"><xsl:text>&#xd;</xsl:text></xsl:when>
-			<xsl:otherwise><xsl:text>weird</xsl:text></xsl:otherwise>
-		</xsl:choose>
+		<xsl:value-of select="e:hexToDecimal(.) => codepoints-to-string()"/>
 	</xsl:template>
   
   <xd:doc>
