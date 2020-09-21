@@ -2,9 +2,30 @@
 <x:description xmlns:x="http://www.jenitennison.com/xslt/xspec" xmlns:e="http://schema.expertml.com/JayParser" stylesheet="../../../main/resources/xsl/JayParser.xsl">
   
   <x:param name="debug" select="false()"/>
+	
+	<!-- Proof of concept -->
+	<x:scenario label="When parsing the sample 'Program' grammar">
+		<x:call function="e:parse-with-grammar">
+			<x:param name="local.input" select="'{a=0}'"/>
+			<x:param name="local.grammar" href="../../../../samples/Program.ixml"/>
+		</x:call>
+		<x:expect label="Expect to return the following:" select="/">
+			<program>
+				<block>{<statement>
+						<assignment>
+							<variable>
+								<identifier>a</identifier>
+							</variable>=<expression>
+								<number>0</number>
+							</expression>
+						</assignment>
+					</statement>}</block>
+			</program>
+		</x:expect>
+	</x:scenario>
   
-<!--   Eat your own Dogfood -->
-  <x:scenario label="when parsing the iXML (compact) grammar">
+	<!--   Eat your own Dogfood -->
+  <x:scenario label="when parsing the iXML (compact) grammar" pending="bugs">
     <x:call function="e:parse-with-grammar">
       <x:param name="local.input"><![CDATA[
 ixml: S, rule+.

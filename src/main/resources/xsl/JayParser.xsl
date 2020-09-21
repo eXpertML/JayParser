@@ -30,7 +30,7 @@
   </xd:doc>
   <xsl:template name="xsl:initial-template">
   	<xsl:comment select="$input" use-when="$debug"/>
-    <xsl:sequence select="e:parse-tree($input)"/>
+    <xsl:sequence select="e:parse($input)"/>
   </xsl:template>
     
   <!-- e:parseTree mode (used for building the parse tree) -->
@@ -445,10 +445,12 @@
   <xsl:function name="e:getStates" as="xs:string+">
     <xsl:param name="states" as="xs:string+"/>
     <xsl:param name="nodes" as="node()+"/>
-    <xsl:sequence select="$states"/>
-    <xsl:apply-templates select="$nodes" mode="e:states">
-      <xsl:with-param name="states" select="$states" tunnel="yes"/>
-    </xsl:apply-templates>
+		<xsl:variable name="new.states" as="xs:string*">
+			<xsl:apply-templates select="$nodes" mode="e:states">
+				<xsl:with-param name="states" select="$states" tunnel="yes"/>
+			</xsl:apply-templates>
+		</xsl:variable>
+    <xsl:sequence select="$states, distinct-values($new.states)"/>
   </xsl:function>
   
   <!-- determining new visited maps: this depends on nodes being returned in sequence also... -->
