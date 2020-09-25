@@ -40,10 +40,10 @@
 	<xd:doc>
 		<xd:desc>iXML root node match template: iXML defines the first rule to be the 'start' rule corresponding with the output root node.  This also intialises the $visited and $state tunnel parameters</xd:desc>
 	</xd:doc>
-	<xsl:template match="ixml" mode="e:parseTree" as="element(e:rule)">
-		<xsl:variable name="result" as="map(*)">
+	<xsl:template match="ixml" mode="e:parseTree">
+		<xsl:variable name="result" as="map(*)?">
 			<xsl:apply-templates select="rule[1]" mode="#current">
-				<xsl:with-param name="visited" as="map(*)" select="map{rule[1]/@name : map{1: ()}}" tunnel="yes"/>
+				<xsl:with-param name="visited" as="map(*)" select="map{}" tunnel="yes"/>
 				<xsl:with-param name="state" as="xs:integer" select="1" tunnel="yes"/>
 			</xsl:apply-templates>
 		</xsl:variable>
@@ -51,71 +51,58 @@
 	</xsl:template>
 	
 	<xd:doc>
-		<xd:desc>rule match template: this adds rules to the parse tree, returning a map including the 'parseTree', 'visited' and 'states'.</xd:desc>
+		<xd:desc>rule and alts match template: this adds rules and/or an alternatives structure to the parse tree, returning a map including the 'parseTree', 'visited' and 'states'.</xd:desc>
     <xd:param name="state">The current state number</xd:param>
     <xd:param name="visited">The map of nonterminal rules visited, and associated states.</xd:param>
+    <xd:param name="states">A sequence of existing states, ordered by state reference number</xd:param>
 	</xd:doc>
-	<xsl:template match="rule" mode="e:parseTree" as="map(*)">
+	<xsl:template match="rule|alts" mode="e:parseTree" as="map(*)">
 		<xsl:param name="state" tunnel="yes" as="xs:integer"/>
 		<xsl:param name="visited" tunnel="yes" as="map(*)"/>
-		<xsl:variable name="result" as="map(*)">
-			<xsl:call-template name="e:process-alt-siblings">
-				<xsl:with-param name="visited" tunnel="yes" select="e:visit($visited, @name, $state)"/>
-			</xsl:call-template>
-		</xsl:variable>
-		<xsl:map>
-			<xsl:map-entry key="'parseTree'">
-				<xsl:choose>
-					<xsl:when test="e:unvisited($visited, @name, $state)">
-						<e:rule state="{$state}" ends="{$result?ends}">
+		<xsl:param name="states" tunnel="yes" as="xs:string+"/>
+		<xsl:variable name="key" select="(@name, @gid, generate-id())[1]"/>
+		<xsl:choose>
+			<!-- when the rule has not yet been visited in this state -->
+			<xsl:when test="e:unvisited($visited, $key, $state)">
+				<xsl:variable name="result" as="map(*)">
+					<xsl:call-template name="e:process-alt-siblings">
+						<xsl:with-param name="visited" tunnel="yes" select="e:visit($visited, $key, $state)"/>
+					</xsl:call-template>
+				</xsl:variable>
+				<xsl:map>
+					<xsl:map-entry key="'parseTree'">
+						<xsl:element name="e:{local-name()}">
+							<xsl:attribute name="state" select="$state"/>
+							<xsl:attribute name="ends" select="string-join($result?ends, ' ')"/>
 							<xsl:apply-templates select="@*" mode="#current"/>
 							<xsl:sequence select="$result?parseTree"/>
-						</e:rule>
-					</xsl:when>
-					<xsl:when test="not($visited(@name)(string($state)))">
-						<e:fail state="{$state}" nt="{@name}"/>
-					</xsl:when>
-					<xsl:otherwise>
-						<e:nt state="{$state}" name="{@name}"/>
-					</xsl:otherwise>
-				</xsl:choose>
-			</xsl:map-entry>
-			<xsl:sequence select="map:remove($result, 'parseTree')"/>
-		</xsl:map>
-	</xsl:template>
-	
-	<xd:doc>
-    <xd:desc>Processes alternatives in rules, eliminating any redundant/visited sets of alternatives.</xd:desc>
-    <xd:param name="state">The current state number</xd:param>
-    <xd:param name="visited">The map of nonterminal rules visited, and associated states.</xd:param>
-	</xd:doc>
-	<xsl:template match="alts" mode="e:parseTree" as="map(*)">
-		<xsl:param name="state" tunnel="yes" as="xs:integer"/>
-		<xsl:param name="visited" tunnel="yes" as="map(*)"/>
-    <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
-		<xsl:variable name="result" as="map(*)">
-			<xsl:call-template name="e:process-alt-siblings">
-				<xsl:with-param name="visited" select="e:visit($visited, $GID, $state)" tunnel="yes"/>
-			</xsl:call-template>
-		</xsl:variable>
-		<xsl:map>
-			<xsl:map-entry key="'parseTree'">
-				<xsl:if test="e:unvisited($visited, $GID, $state)">
-					<xsl:choose>
-						<xsl:when test="count($result?parseTree/e:alt) eq 1">
-							<xsl:sequence select="$result?parseTree/e:alt/node()"/>
-						</xsl:when>
-						<xsl:otherwise>
-							<e:alts state="{$state}" ends="{$result?ends}">
-								<xsl:apply-templates select="@*" mode="#current"/>
-								<xsl:sequence select="$result?parseTree"/>
-							</e:alts>
-						</xsl:otherwise>
-					</xsl:choose>
-				</xsl:if>
-			</xsl:map-entry>
-			<xsl:sequence select="map:remove($result, 'parseTree')"/>
-		</xsl:map>
+						</xsl:element>
+					</xsl:map-entry>
+					<xsl:sequence select="map:remove($result, 'parseTree')"/>
+				</xsl:map>
+			</xsl:when>
+			<!-- when the rule has been visited in this state, but fails -->
+			<xsl:when test="not($visited($key)(string($state)))">
+				<xsl:map>
+					<xsl:map-entry key="'parseTree'">
+						<e:fail state="{$state}" nt="{$key}"/>
+					</xsl:map-entry>
+					<xsl:map-entry key="'visited'" select="$visited"/>
+					<xsl:map-entry key="'states'" select="$states"/>
+				</xsl:map>
+			</xsl:when>
+			<!-- when the rule has been visited in this state, and succeeds -->
+			<xsl:otherwise>
+				<xsl:map>
+					<xsl:map-entry key="'parseTree'">
+						<e:nt state="{$state}" name="{$key}"/>
+					</xsl:map-entry>
+					<xsl:map-entry key="'visited'" select="$visited"/>
+					<xsl:map-entry key="'states'" select="$states"/>
+					<xsl:map-entry key="'ends'" select="$visited($key)(string($state))"/>
+				</xsl:map>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 	
 	<xd:doc>
@@ -176,6 +163,7 @@
 							<xsl:value-of select="$matched"/>
 						</e:literal>
 					</xsl:map-entry>
+      		<xsl:map-entry key="'ends'" select="$ends"/>
       		<xsl:map-entry key="'states'" select="$altered.states"/>
       		<xsl:map-entry key="'visited'" select="$visited"/>
       	</xsl:map>
@@ -272,7 +260,12 @@
   <xsl:template match="sep" mode="e:parseTree" as="map(*)">
     <xsl:call-template name="e:process-siblings"/>
   </xsl:template>	
-  
+	
+	<xd:doc>
+		<xd:desc>Ignore text nodes in the grammar tree</xd:desc>
+	</xd:doc>
+	<xsl:template match="text()" mode="e:parseTree"/>
+	
   <!-- Building regex from 'literal', 'inclusion' or 'exclusion' -->
 	
 	<xsl:mode name="e:charSetRegEx" on-multiple-match="use-last" warning-on-multiple-match="false"/>
@@ -428,8 +421,7 @@
   <xd:doc>
     <xd:desc>Adds the content of non-empty alternatives</xd:desc>
   </xd:doc>
-  <xsl:template match="e:alt[not(e:fail)]" mode="e:pruneTree">
-    <xsl:variable name="alt" as="node()*">
+  <xsl:template match="e:alt[not(e:fail)]" mode="e:pruneTree"><xsl:variable name="alt" as="node()*">
       <xsl:apply-templates mode="#current"/>
     </xsl:variable>
     <xsl:if test="$alt">
@@ -444,12 +436,13 @@
     <xd:desc>This key indexes nonterminal rules in particular states using the rule name prepended by the state reference.</xd:desc>
   </xd:doc>
   <xsl:key name="ntByNameState" match="e:rule" use="concat(@state, @name)"/>
+	<xsl:key name="ntByNameState" match="e:alts" use="concat(@state, @gid)"/>
   
   <xd:doc>
     <xd:desc>Adds the content of any nonterminal that has already been processed.</xd:desc>
   </xd:doc>
   <xsl:template match="e:nt" mode="e:pruneTree">
-    <xsl:apply-templates select="key('ntByNameState', concat(@state, @name))" mode="#current"/>
+    <xsl:apply-templates select="key('ntByNameState', concat(@state, (@gid, @name)[1]))" mode="#current"/>
   </xsl:template>
   
   <xd:doc>
@@ -531,27 +524,22 @@
 		<xd:param name="prev">metadata from the previous parsed item</xd:param>
 		<xd:param name="node">The content to be processed in each state</xd:param>
 		<xd:param name="state">The integer representing the current state</xd:param>
+		<xd:param name="visited">A map detailing which rules and alts have been visited in which states</xd:param>
+		<xd:param name="states">A sequence of strings representing the parse.</xd:param>
 	</xd:doc>
 	<xsl:template name="e:altStates" as="map(*)">
 		<xsl:param name="prev" as="map(*)"/>
 		<xsl:param name="node" as="node()"/>
 		<xsl:param name="state" as="xs:integer" tunnel="yes"/>
+		<xsl:param name="visited" as="map(*)" tunnel="yes"/>
+		<xsl:param name="states" as="xs:string+" tunnel="yes"/>
 		<xsl:choose>
-			<xsl:when test="count($prev?ends) eq 0">
-				<xsl:map>
-					<xsl:map-entry key="'parseTree'">
-						<e:empty/>
-					</xsl:map-entry>
-					<xsl:map-entry key="'ends'" select="$state"/>
-					<xsl:sequence select="map:remove($prev, ('parseTree', 'ends'))"/>
-				</xsl:map>
-			</xsl:when>
-			<xsl:when test="count($prev?ends) eq 1">
+			<xsl:when test="count($prev?ends) le 1">
 				<xsl:variable name="this" as="map(*)">
-					<xsl:apply-templates select="$node">
-						<xsl:with-param name="state" select="$prev?ends" tunnel="yes"/>
-						<xsl:with-param name="visited" select="$prev?visited" tunnel="yes"/>
-						<xsl:with-param name="states" select="$prev?states" tunnel="yes"/>
+					<xsl:apply-templates select="$node" mode="#current">
+						<xsl:with-param name="state" select="($prev?ends, $state)[1]" tunnel="yes"/>
+						<xsl:with-param name="visited" select="($prev?visited, $visited)[1]" tunnel="yes"/>
+						<xsl:with-param name="states" select="if ($prev?states) then $prev?states else $states" tunnel="yes"/>
 					</xsl:apply-templates>
 				</xsl:variable>
 				<xsl:map>
@@ -565,37 +553,41 @@
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:iterate select="$prev?ends">
-					<xsl:param name="alts" select="()" as="element(e:alt)*"/>
-					<xsl:param name="metadata" as="map(*)" select="map:remove($prev, 'parseTree')"/>					
+					<xsl:param name="alt-maps" as="map(*)*"/>					
 					<xsl:on-completion>
 						<xsl:map>
 							<xsl:map-entry key="'parseTree'">
 								<xsl:sequence select="$prev?parseTree"/>
 								<xsl:where-populated>
 									<e:alts>
-										<xsl:sequence select="$alts"/>
+										<xsl:sequence select="$alt-maps?parseTree"/>
 									</e:alts>
 								</xsl:where-populated>
 							</xsl:map-entry>
-							<xsl:sequence select="$metadata"/>
+							<xsl:map-entry key="'ends'" select="distinct-values($alt-maps?ends)"/>
+							<xsl:sequence select="map:remove($alt-maps[last()], ('parseTree', 'ends'))"/>
 						</xsl:map>
 					</xsl:on-completion>
 					<xsl:variable name="this.state" select="." as="xs:integer"/>
 					<xsl:variable name="this" as="map(*)">
 						<xsl:apply-templates select="$node">
 							<xsl:with-param name="state" select="$this.state" tunnel="yes"/>
-							<xsl:with-param name="visited" select="$metadata?visited" tunnel="yes"/>
-							<xsl:with-param name="states" select="$metadata?state" tunnel="yes"/>
+							<xsl:with-param name="visited" select="$alt-maps[last()]?visited" tunnel="yes"/>
+							<xsl:with-param name="states" select="$alt-maps[last()]?state" tunnel="yes"/>
 						</xsl:apply-templates>
 					</xsl:variable>
 					<xsl:next-iteration>
-						<xsl:with-param name="alts">
-							<xsl:sequence select="$alts"/>
-							<e:alt>
-								<xsl:sequence select="$this?parseTree"/>
-							</e:alt>
+						<xsl:with-param name="alt-maps">
+							<xsl:sequence select="$alt-maps"/>
+							<xsl:map>
+								<xsl:map-entry key="'parseTree'">
+									<e:alt>
+										<xsl:sequence select="$this?parseTree"/>
+									</e:alt>
+								</xsl:map-entry>
+								<xsl:sequence select="map:remove($this, 'parseTree')"/>
+							</xsl:map>
 						</xsl:with-param>
-						<xsl:with-param name="metadata" select="map:remove($this, 'parseTree')"/>
 					</xsl:next-iteration>
 				</xsl:iterate>
 			</xsl:otherwise>
@@ -619,15 +611,7 @@
           <xsl:map>
             <xsl:for-each select="$states">
               <xsl:variable name="state" select="."/>
-              <xsl:variable name="raw.endStates" as="xs:string*" select="
-                  for $map in $maps[map:contains(., $key)]
-                  return
-                    $map($key)($state)"/>
-              <xsl:variable name="distinct.endStates" as="xs:string*" select="
-                  distinct-values(for $es in $raw.endStates
-                  return
-                    tokenize($es, ' '))"/>
-              <xsl:variable name="endStates" as="xs:string" select="string-join($distinct.endStates, ' ')"/>
+            	<xsl:variable name="endStates" as="xs:integer*" select="distinct-values(for $map in $maps[map:contains(., $key)] return $map($key)($state))"/>
               <xsl:map-entry key="$state" select="$endStates"/>
             </xsl:for-each>
           </xsl:map>
@@ -660,13 +644,24 @@
     <xsl:param name="visited" as="map(*)"/>
     <xsl:param name="key" as="xs:string"/>
     <xsl:param name="state" as="xs:integer+"/>
-    <xsl:param name="endStates" as="xs:integer*"/>    
-    <xsl:variable name="allStates" as="map(*)*" select="map:merge((for $s in $state return map{string($s): string-join($endStates, ' ')}, $visited($key)) )"/>
-    <xsl:sequence select="map:merge( (map{$key : $allStates}, $visited) )"/>
+    <xsl:param name="endStates" as="xs:integer*"/>
+  	<xsl:variable name="local.visited" as="map(*)">
+  		<xsl:map>
+  			<xsl:map-entry key="$key">
+  				<xsl:map>
+  					<xsl:for-each select="$state">
+  						<xsl:variable name="this.state" select="."/>
+  						<xsl:map-entry key="string($this.state)" select="$endStates"/>
+  					</xsl:for-each>
+  				</xsl:map>
+  			</xsl:map-entry>
+  		</xsl:map>
+  	</xsl:variable>
+		<xsl:sequence select="e:rmerge(($local.visited, $visited))"/>
   </xsl:function>
   
   <xd:doc>
-    <xd:desc>Option for e:visit with implied (empty) value for $endState</xd:desc>
+    <xd:desc>Option for e:visit with implied value for $endState</xd:desc>
     <xd:param name="visited">The map of visited rules and associated states</xd:param>
     <xd:param name="key">The rule name to be updated</xd:param>
     <xd:param name="state">The state to be updated</xd:param>

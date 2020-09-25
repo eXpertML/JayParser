@@ -14,7 +14,7 @@
                         <scenarioAssociation-array>
                             <scenarioAssociation>
                                 <field name="url">
-                                    <String>src/main/resources/xsl/JayParser.xsl</String>
+                                    <String>src/main/resources/xsl/Jay2.xsl</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -34,7 +34,27 @@
                             </scenarioAssociation>
                             <scenarioAssociation>
                                 <field name="url">
-                                    <String>src/main/resources/xsl/Jay2.xsl</String>
+                                    <String>samples/Program.ixml</String>
+                                </field>
+                                <field name="scenarioIds">
+                                    <list>
+                                        <String>JayParser - Poc</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioTypes">
+                                    <list>
+                                        <String>XML</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioStorageLocations">
+                                    <list>
+                                        <Byte>2</Byte>
+                                    </list>
+                                </field>
+                            </scenarioAssociation>
+                            <scenarioAssociation>
+                                <field name="url">
+                                    <String>src/main/resources/xsl/JayParser.xsl</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -59,26 +79,6 @@
                                 <field name="scenarioIds">
                                     <list>
                                         <String>JayParser - Dogfood test</String>
-                                    </list>
-                                </field>
-                                <field name="scenarioTypes">
-                                    <list>
-                                        <String>XML</String>
-                                    </list>
-                                </field>
-                                <field name="scenarioStorageLocations">
-                                    <list>
-                                        <Byte>2</Byte>
-                                    </list>
-                                </field>
-                            </scenarioAssociation>
-                            <scenarioAssociation>
-                                <field name="url">
-                                    <String>samples/Program.ixml</String>
-                                </field>
-                                <field name="scenarioIds">
-                                    <list>
-                                        <String>JayParser - Poc</String>
                                     </list>
                                 </field>
                                 <field name="scenarioTypes">
@@ -256,7 +256,7 @@
                                     <String-array/>
                                 </field>
                                 <field name="xslTransformer">
-                                    <String>Saxon-PE</String>
+                                    <String>Saxon-EE</String>
                                 </field>
                                 <field name="extensionURLs">
                                     <String-array/>
@@ -396,7 +396,7 @@
                                     <String-array/>
                                 </field>
                                 <field name="xslTransformer">
-                                    <String>Saxon-PE</String>
+                                    <String>Saxon-EE</String>
                                 </field>
                                 <field name="extensionURLs">
                                     <String-array/>
