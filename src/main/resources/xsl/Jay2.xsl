@@ -460,7 +460,7 @@
 	<xsl:template name="e:process-siblings" as="map(*)">
 		<xsl:param name="siblings" select="child::*" as="node()*"/>
 		<xsl:iterate select="$siblings">
-			<xsl:param name="prev.result" select="map{}"/>
+			<xsl:param name="prev.result" select="map{}" as="map(*)"/>
 			<xsl:on-completion>
 				<xsl:sequence select="$prev.result"/>
 			</xsl:on-completion>
