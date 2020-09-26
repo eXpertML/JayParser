@@ -14,11 +14,31 @@
                         <scenarioAssociation-array>
                             <scenarioAssociation>
                                 <field name="url">
+                                    <String>src/main/resources/xsl/JayParser.xsl</String>
+                                </field>
+                                <field name="scenarioIds">
+                                    <list>
+                                        <String>JayParser - Dogfood test</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioTypes">
+                                    <list>
+                                        <String>XML</String>
+                                    </list>
+                                </field>
+                                <field name="scenarioStorageLocations">
+                                    <list>
+                                        <Byte>2</Byte>
+                                    </list>
+                                </field>
+                            </scenarioAssociation>
+                            <scenarioAssociation>
+                                <field name="url">
                                     <String>src/main/resources/xsl/Jay2.xsl</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
-                                        <String>JayParser - Poc</String>
+                                        <String>JayParser - Dogfood test</String>
                                     </list>
                                 </field>
                                 <field name="scenarioTypes">
@@ -35,26 +55,6 @@
                             <scenarioAssociation>
                                 <field name="url">
                                     <String>samples/Program.ixml</String>
-                                </field>
-                                <field name="scenarioIds">
-                                    <list>
-                                        <String>JayParser - Poc</String>
-                                    </list>
-                                </field>
-                                <field name="scenarioTypes">
-                                    <list>
-                                        <String>XML</String>
-                                    </list>
-                                </field>
-                                <field name="scenarioStorageLocations">
-                                    <list>
-                                        <Byte>2</Byte>
-                                    </list>
-                                </field>
-                            </scenarioAssociation>
-                            <scenarioAssociation>
-                                <field name="url">
-                                    <String>src/main/resources/xsl/JayParser.xsl</String>
                                 </field>
                                 <field name="scenarioIds">
                                     <list>
@@ -412,6 +412,53 @@
                                                     <String></String>
                                                 </field>
                                             </xsltSaxonSAAdvancedOptions>
+                                        </entry>
+                                        <entry>
+                                            <String>Saxon-HE</String>
+                                            <xsltSaxonHEAdvancedOptions>
+                                                <field name="showVersionWarnings">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="dtdSourceValidation">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="dtdSourceValidationRecover">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="lineNumbering">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="initialMode">
+                                                    <null/>
+                                                </field>
+                                                <field name="initialTemplate">
+                                                    <String>{http://www.w3.org/1999/XSL/Transform}initial-template</String>
+                                                </field>
+                                                <field name="traceXPathExpression">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="expandAttributeDefaults">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="errorRecoverPolicy">
+                                                    <String>saxon.recover.with.warning</String>
+                                                </field>
+                                                <field name="stripWS">
+                                                    <String>saxon.strip.ws.ignorable</String>
+                                                </field>
+                                                <field name="optimizationEnabled">
+                                                    <Boolean>true</Boolean>
+                                                </field>
+                                                <field name="useConfigFile">
+                                                    <Boolean>false</Boolean>
+                                                </field>
+                                                <field name="configSystemID">
+                                                    <String>${pdu}/pf-saxon-conf.xml</String>
+                                                </field>
+                                                <field name="initializer">
+                                                    <String></String>
+                                                </field>
+                                            </xsltSaxonHEAdvancedOptions>
                                         </entry>
                                         <entry>
                                             <String>Saxon-PE</String>

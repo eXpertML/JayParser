@@ -141,13 +141,13 @@
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
     <xsl:param name="state" as="xs:integer" tunnel="yes"/>
 		<xsl:param name="visited" as="map(*)" tunnel="yes"/>
+		<xsl:variable name="seq" as="xs:string+">
+			<xsl:text>^(</xsl:text>
+			<xsl:apply-templates select="." mode="e:charSetRegEx"/>
+			<xsl:text>).*?$</xsl:text>
+		</xsl:variable>
 		<xsl:variable name="regex" as="xs:string">
-      <xsl:variable name="seq">
-        <xsl:text>^(</xsl:text>
-        <xsl:apply-templates select="." mode="e:charSetRegEx"/>
-        <xsl:text>).*?$</xsl:text>
-      </xsl:variable>
-      <xsl:sequence select="string-join($seq)"/>
+      <xsl:sequence select="string-join($seq, '')"/>
 		</xsl:variable>
     <xsl:variable name="match" as="xs:boolean" select="matches($states[$state], $regex, 's')"/>
 		<xsl:choose>
@@ -191,11 +191,14 @@
           <empty/>
         </alt>
         <alt>
-          <xsl:sequence select="(child::*[not(self::sep)], sep)"/>
-          <xsl:copy>
-            <xsl:attribute name="gid" select="$GID"/>
-            <xsl:copy-of select="@*, node()"/>
-          </xsl:copy>
+          <xsl:sequence select="child::*[not(self::sep)]"/>
+					<option>
+						<xsl:sequence select="sep"/>
+						<xsl:copy>
+							<xsl:attribute name="gid" select="$GID"/>
+							<xsl:copy-of select="@*, node()"/>
+						</xsl:copy>
+					</option>
         </alt>
       </alts>
     </xsl:variable>
@@ -207,7 +210,7 @@
   </xd:doc>
   <xsl:template match="option" mode="e:parseTree" as="map(*)">
     <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
-		<xsl:variable name="equivalent">
+		<xsl:variable name="equivalent" as="element(alts)">
 			<alts gid="{$GID}">
 				<alt>
 					<empty/>
@@ -224,11 +227,16 @@
     <xd:desc>Template to create parse tree fragments for an non-optional repeat.  It does this by adding its content, and then adding an optional repeat with the same content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
   </xd:doc>
   <xsl:template match="repeat1" mode="e:parseTree" as="map(*)">
+    <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
     <xsl:variable name="equivalent" as="element()*">
-      <xsl:sequence select="(child::*[not(self::sep)], sep)"/>
-      <repeat0 gid="{generate-id(.)}">
-        <xsl:sequence select="*"/>
-      </repeat0>
+      <xsl:sequence select="child::*[not(self::sep)]"/>
+			<option>
+				<xsl:sequence select="sep"/>
+				<xsl:copy>
+					<xsl:attribute name="gid" select="$GID"/>
+					<xsl:copy-of select="@*, node()"/>
+				</xsl:copy>
+			</option>
     </xsl:variable>
   	<xsl:call-template name="e:process-siblings">
   		<xsl:with-param name="siblings" select="$equivalent"/>
@@ -251,6 +259,7 @@
   		</xsl:map-entry>
   		<xsl:map-entry key="'visited'" select="$visited"/>
   		<xsl:map-entry key="'states'" select="$states"/>
+  		<xsl:map-entry key="'ends'" select="$state"/>
   	</xsl:map>
   </xsl:template>
 	
@@ -470,7 +479,7 @@
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:next-iteration>
-						<xsl:with-param name="prev.result">
+						<xsl:with-param name="prev.result" as="map(*)">
 							<xsl:call-template name="e:altStates">
 								<xsl:with-param name="prev" select="$prev.result"/>
 								<xsl:with-param name="node" select="."/>
@@ -487,11 +496,13 @@
 		<xd:param name="sibling-alts">The alternatives to be processed</xd:param>
 		<xd:param name="visited">A map detailing which rules and alts have been visited in which states</xd:param>
 		<xd:param name="states">A sequence of strings representing the parse.</xd:param>
+		<xd:param name="state">The integer representing the current state</xd:param>
 	</xd:doc>
 	<xsl:template name="e:process-alt-siblings" as="map(*)">
 		<xsl:param name="sibling-alts" select="child::alt" as="element(alt)+"/>
 		<xsl:param name="visited" as="map(*)" tunnel="yes"/>
 		<xsl:param name="states" as="xs:string+" tunnel="yes"/>
+		<xsl:param name="state" as="xs:integer" tunnel="yes"/>
 		<xsl:iterate select="$sibling-alts">
 			<xsl:param name="prev.result" as="map(*)">
 				<xsl:map>
@@ -504,15 +515,17 @@
 			</xsl:on-completion>
 			<xsl:variable name="result" as="map(*)">
 				<xsl:apply-templates select="." mode="#current">
-					<xsl:with-param name="visited" select="$prev.result?visited"/>
-					<xsl:with-param name="states" select="$prev.result?states"/>
+					<xsl:with-param name="visited" select="$prev.result?visited" tunnel="yes"/>
+					<xsl:with-param name="states" select="$prev.result?states" tunnel="yes"/>
+					<xsl:with-param name="state" select="$state" tunnel="yes"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:next-iteration>
-				<xsl:with-param name="prev.result">
+				<xsl:with-param name="prev.result" as="map(*)">
 					<xsl:map>
 						<xsl:map-entry key="'parseTree'" select="$prev.result?parseTree, $result?parseTree"/>
-						<xsl:sequence select="map:remove($result, 'parseTree')"/>
+						<xsl:map-entry key="'ends'" select="distinct-values(($prev.result?ends, $result?ends))"/>
+						<xsl:sequence select="map:remove($result, ('ends', 'parseTree'))"/>
 					</xsl:map>
 				</xsl:with-param>
 			</xsl:next-iteration>
@@ -539,7 +552,7 @@
 					<xsl:apply-templates select="$node" mode="#current">
 						<xsl:with-param name="state" select="($prev?ends, $state)[1]" tunnel="yes"/>
 						<xsl:with-param name="visited" select="($prev?visited, $visited)[1]" tunnel="yes"/>
-						<xsl:with-param name="states" select="if ($prev?states) then $prev?states else $states" tunnel="yes"/>
+						<xsl:with-param name="states" select="if (exists($prev?states)) then $prev?states else $states" tunnel="yes"/>
 					</xsl:apply-templates>
 				</xsl:variable>
 				<xsl:map>
@@ -570,14 +583,14 @@
 					</xsl:on-completion>
 					<xsl:variable name="this.state" select="." as="xs:integer"/>
 					<xsl:variable name="this" as="map(*)">
-						<xsl:apply-templates select="$node">
+						<xsl:apply-templates select="$node" mode="#current">
 							<xsl:with-param name="state" select="$this.state" tunnel="yes"/>
-							<xsl:with-param name="visited" select="$alt-maps[last()]?visited" tunnel="yes"/>
-							<xsl:with-param name="states" select="$alt-maps[last()]?state" tunnel="yes"/>
+							<xsl:with-param name="visited" select="if (exists($alt-maps)) then $alt-maps[last()]?visited else $prev?visited" tunnel="yes"/>
+							<xsl:with-param name="states" select="if (exists($alt-maps)) then $alt-maps[last()]?states else $prev?states" tunnel="yes"/>
 						</xsl:apply-templates>
 					</xsl:variable>
 					<xsl:next-iteration>
-						<xsl:with-param name="alt-maps">
+						<xsl:with-param name="alt-maps" as="map(*)*">
 							<xsl:sequence select="$alt-maps"/>
 							<xsl:map>
 								<xsl:map-entry key="'parseTree'">
@@ -736,10 +749,15 @@
   <xsl:function name="e:parse-with-grammar">
     <xsl:param name="local.input" as="xs:string"/>
     <xsl:param name="local.grammar" as="document-node(element(ixml))"/>
-    <xsl:variable name="pruneTree">
-      <xsl:apply-templates select="e:parse-tree-with-grammar($local.input, $local.grammar)" mode="e:pruneTree"/>
+  	<xsl:variable name="parseTree" as="node()" select="e:parse-tree-with-grammar($local.input, $local.grammar)"/>
+    <xsl:variable name="pruneTree" as="node()?">
+      <xsl:apply-templates select="$parseTree" mode="e:pruneTree"/>
     </xsl:variable>
 		<xsl:sequence select="$pruneTree"/>
+  	<xsl:on-empty>
+  		<xsl:sequence select="$parseTree"/>
+<!--  		<xsl:sequence select="error((), 'No valid parse tree was found', $parseTree)"/>-->
+  	</xsl:on-empty>
   </xsl:function>
   
   <xd:doc>
