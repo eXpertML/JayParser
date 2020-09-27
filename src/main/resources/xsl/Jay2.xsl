@@ -674,13 +674,14 @@
     <xsl:param name="key" as="xs:string"/>
     <xsl:param name="state" as="xs:integer+"/>
     <xsl:param name="endStates" as="xs:integer*"/>
+  	<xsl:variable name="existing.ends" as="xs:integer*" select="if (exists($visited($key))) then for $s in $state return $visited($key)($s) else ()"/>
   	<xsl:variable name="local.visited" as="map(*)">
   		<xsl:map>
   			<xsl:map-entry key="$key">
   				<xsl:map>
   					<xsl:for-each select="$state">
   						<xsl:variable name="this.state" select="."/>
-  						<xsl:map-entry key="string($this.state)" select="$endStates"/>
+  						<xsl:map-entry key="string($this.state)" select="distinct-values(($endStates, $existing.ends))"/>
   					</xsl:for-each>
   				</xsl:map>
   			</xsl:map-entry>
