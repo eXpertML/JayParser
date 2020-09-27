@@ -23,6 +23,7 @@
 	
   <xsl:param name="input" as="xs:string" select="'{a=0}'"/>
   <xsl:param name="grammar" as="document-node(element(ixml))" select="/"/>
+	<xsl:param name="debug" as="xs:boolean" static="true" select="false()"/>
 	
   <xsl:key name="ruleByName" match="rule" use="@name"/>
   
@@ -47,6 +48,20 @@
 				<xsl:with-param name="state" as="xs:integer" select="1" tunnel="yes"/>
 			</xsl:apply-templates>
 		</xsl:variable>
+		<xsl:comment use-when="$debug">
+			Visited: <xsl:sequence select="serialize($result?visited, map{'method':'json', 'indent':true()})"/>
+			States: 
+				<xsl:for-each select="1 to count($result?states)">
+					<xsl:variable name="this.num" select="." as="xs:integer"/>
+					<xsl:variable name="next.num" select=". + 1" as="xs:integer"/>
+					<xsl:variable name="this.state" select="$result?states[$this.num]" as="xs:string"/>
+					<xsl:variable name="next.state" select="$result?states[$next.num]" as="xs:string?"/>
+					<xsl:value-of select="$this.num"/>
+					<xsl:text>: </xsl:text>
+					<xsl:value-of select="substring-before($this.state, $next.state)"/>
+					<xsl:text>&#xa;</xsl:text>
+				</xsl:for-each>
+		</xsl:comment>
 		<xsl:sequence select="$result?parseTree"/>
 	</xsl:template>
 	
@@ -184,7 +199,7 @@
     <xd:desc>Template to create parse tree fragments for an optional repeat.  It does this by adding a choice between an empty parse result its content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
   </xd:doc>
   <xsl:template match="repeat0" mode="e:parseTree" as="map(*)">
-    <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
+    <xsl:variable name="GID" select="(@gid, local-name()||generate-id(.))[1]"/>
     <xsl:variable name="equivalent" as="element(alts)">
       <alts gid="{$GID}">
         <alt>
@@ -209,7 +224,7 @@
     <xd:desc>Template to create parse tree fragments for an optional rule.  It does this by adding a choice between an empty parse result its content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
   </xd:doc>
   <xsl:template match="option" mode="e:parseTree" as="map(*)">
-    <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
+    <xsl:variable name="GID" select="(@gid, local-name()||generate-id(.))[1]"/>
 		<xsl:variable name="equivalent" as="element(alts)">
 			<alts gid="{$GID}">
 				<alt>
@@ -227,7 +242,7 @@
     <xd:desc>Template to create parse tree fragments for an non-optional repeat.  It does this by adding its content, and then adding an optional repeat with the same content, as suggested in the iXML spec at https://homepages.cwi.nl/~steven/ixml/ixml-specification.html#L5773.  The resulting fragment is given a unique identifier to avoid infinite recursion and/or failed branches being duplicated.</xd:desc>
   </xd:doc>
   <xsl:template match="repeat1" mode="e:parseTree" as="map(*)">
-    <xsl:variable name="GID" select="(@gid, generate-id(.))[1]"/>
+    <xsl:variable name="GID" select="(@gid, local-name()||generate-id(.))[1]"/>
     <xsl:variable name="equivalent" as="element()*">
       <xsl:sequence select="child::*[not(self::sep)]"/>
 			<option>
