@@ -93,11 +93,12 @@
 							<xsl:sequence select="$result?parseTree"/>
 						</xsl:element>
 					</xsl:map-entry>
-					<xsl:sequence select="map:remove($result, 'parseTree')"/>
+					<xsl:map-entry key="'visited'" select="e:visit($result?visited, $key, $state, $result?ends)"/>
+					<xsl:sequence select="map:remove($result, ('visited', 'parseTree'))"/>
 				</xsl:map>
 			</xsl:when>
 			<!-- when the rule has been visited in this state, but fails -->
-			<xsl:when test="not($visited($key)(string($state)))">
+			<xsl:when test="not(exists($visited($key)(string($state))))">
 				<xsl:map>
 					<xsl:map-entry key="'parseTree'">
 						<e:fail state="{$state}" nt="{$key}"/>
