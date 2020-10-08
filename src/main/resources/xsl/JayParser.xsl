@@ -23,7 +23,7 @@
 	
   <xsl:param name="input" as="xs:string" select="'{a=0}'"/>
   <xsl:param name="grammar" as="document-node(element(ixml))" select="/"/>
-	<xsl:param name="debug" as="xs:boolean" static="true" select="false()"/>
+	<xsl:param name="debug" as="xs:boolean" static="true" select="true()"/>
 	
   <xsl:key name="ruleByName" match="rule" use="@name"/>
   
@@ -157,6 +157,8 @@
     <xsl:param name="states" as="xs:string+" tunnel="yes"/>    
     <xsl:param name="state" as="xs:integer" tunnel="yes"/>
 		<xsl:param name="visited" as="map(*)" tunnel="yes"/>
+		<xsl:message use-when="$debug" select="'matching terminal of type '||local-name()||' in state '||$state||' for string &quot;'||substring($states[$state], 1, 10)||'&quot;'"/>
+		<xsl:message use-when="$debug" select="."/>
 		<xsl:variable name="seq" as="xs:string+">
 			<xsl:text>^(</xsl:text>
 			<xsl:apply-templates select="." mode="e:charSetRegEx"/>
@@ -165,6 +167,7 @@
 		<xsl:variable name="regex" as="xs:string">
       <xsl:sequence select="string-join($seq, '')"/>
 		</xsl:variable>
+		<xsl:message use-when="$debug" select="'regex: '||$regex"/>
     <xsl:variable name="match" as="xs:boolean" select="matches($states[$state], $regex, 's')"/>
 		<xsl:choose>
       <xsl:when test="$match">
@@ -246,13 +249,18 @@
     <xsl:variable name="GID" select="(@gid, local-name()||generate-id(.))[1]"/>
     <xsl:variable name="equivalent" as="element()*">
       <xsl:sequence select="child::*[not(self::sep)]"/>
-			<option>
+    	<alts gid="{$GID}">
+    		<alt>
+    			<empty/>
+    		</alt>
+    		<alt>
 				<xsl:sequence select="sep"/>
 				<xsl:copy>
 					<xsl:attribute name="gid" select="$GID"/>
 					<xsl:copy-of select="@*, node()"/>
 				</xsl:copy>
-			</option>
+    		</alt>
+    	</alts>
     </xsl:variable>
   	<xsl:call-template name="e:process-siblings">
   		<xsl:with-param name="siblings" select="$equivalent"/>
@@ -347,14 +355,14 @@
 		<xd:desc>Matches strings allowed in double quotes</xd:desc>
 	</xd:doc>
 	<xsl:template match="@dstring" mode="e:charSetRegEx" as="xs:string*">
-		<xsl:value-of select="e:escape-regex(.)"/>
+		<xsl:value-of select="replace(e:escape-regex(.), '&quot;&quot;', '&quot;', 's')"/>
 	</xsl:template>
 	
 	<xd:doc>
 		<xd:desc>Matches strings allowed in single quotes</xd:desc>
 	</xd:doc>
 	<xsl:template match="@sstring" mode="e:charSetRegEx" as="xs:string*">
-		<xsl:value-of select='e:escape-regex(.)'/>
+		<xsl:value-of select='replace(e:escape-regex(.), "&apos;&apos;", "&apos;", "s")'/>
 	</xsl:template>
 	
 	<xd:doc>
