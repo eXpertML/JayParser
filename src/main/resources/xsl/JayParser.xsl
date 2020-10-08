@@ -205,19 +205,14 @@
   <xsl:template match="repeat0" mode="e:parseTree" as="map(*)">
     <xsl:variable name="GID" select="(@gid, local-name()||generate-id(.))[1]"/>
     <xsl:variable name="equivalent" as="element(alts)">
-      <alts gid="{$GID}">
+      <alts>
         <alt>
           <empty/>
         </alt>
         <alt>
-          <xsl:sequence select="child::*[not(self::sep)]"/>
-					<option>
-						<xsl:sequence select="sep"/>
-						<xsl:copy>
-							<xsl:attribute name="gid" select="$GID"/>
-							<xsl:copy-of select="@*, node()"/>
-						</xsl:copy>
-					</option>
+					<repeat1 gid="{$GID}">
+						<xsl:copy-of select="@*, node()"/>
+					</repeat1>
         </alt>
       </alts>
     </xsl:variable>
@@ -253,13 +248,13 @@
     		<alt>
     			<empty/>
     		</alt>
-    		<alt>
-				<xsl:sequence select="sep"/>
-				<xsl:copy>
-					<xsl:attribute name="gid" select="$GID"/>
-					<xsl:copy-of select="@*, node()"/>
-				</xsl:copy>
-    		</alt>
+				<alt>
+					<xsl:sequence select="sep"/>
+					<xsl:copy>
+						<xsl:attribute name="gid" select="$GID"/>
+						<xsl:copy-of select="@*, node()"/>
+					</xsl:copy>
+				</alt>
     	</alts>
     </xsl:variable>
   	<xsl:call-template name="e:process-siblings">
